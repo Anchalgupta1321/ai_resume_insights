@@ -29,12 +29,12 @@ It extracts, evaluates, and organizes information such as candidate skills, educ
 ---
 
 ## ⚙️ Installation & Setup
-### 1️⃣ Clone the Repository
+1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/yourusername/resume_analyzer.git
 cd resume_analyzer
 
-### 2️⃣ Install Dependencies
+2️⃣ Install Dependencies
 Make sure you have Python 3.7+ installed, then run:
 pip install -r requirements.txt
 
@@ -50,4 +50,5 @@ Configure it in your script or notebook:
 
 import google.generativeai as genai
 genai.configure(api_key="YOUR_GEMINI_API_KEY")
+
 
