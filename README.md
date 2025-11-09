@@ -53,3 +53,22 @@ Configure it in your script or notebook:
 import google.generativeai as genai
 genai.configure(api_key="YOUR_GEMINI_API_KEY")
 
+---
+
+## 👩‍💻 Author
+
+**Anchal Gupta**  
+📍 Bengaluru, Karnataka – 560064  
+📧 [Email](2022anchal.g@vidyashilp.edu.in)  
+📞 7807647835  
+🔗 [LinkedIn Profile](https://www.linkedin.com/in/anchal-gupta-71436b254/)  
+---
+
+## 🪪 License
+
+This project is licensed under the **MIT License**.  
+You’re free to use, modify, and distribute it for both personal and commercial purposes.  
+See the [LICENSE](LICENSE) file for more details.
+
+
+
