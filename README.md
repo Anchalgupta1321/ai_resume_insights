@@ -39,7 +39,7 @@ cd resume_analyzer
 Make sure you have Python 3.7+ installed, then run:
 pip install -r requirements.txt
 
-
+---
 🔑 Configuration
 🧰 Google Drive Setup
 Create a Service Account in the Google Cloud Console.
@@ -69,6 +69,7 @@ genai.configure(api_key="YOUR_GEMINI_API_KEY")
 This project is licensed under the **MIT License**.  
 You’re free to use, modify, and distribute it for both personal and commercial purposes.  
 See the [LICENSE](LICENSE) file for more details.
+
 
 
 
