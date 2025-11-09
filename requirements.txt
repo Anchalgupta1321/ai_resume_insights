@@ -1,0 +1,7 @@
+PyPDF2
+pandas
+tqdm
+openpyxl
+google-generativeai
+google-api-python-client
+google-auth
