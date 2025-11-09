@@ -31,9 +31,9 @@ It extracts, evaluates, and organizes information such as candidate skills, educ
 ## ⚙️ Installation & Setup
 
 ### Clone the Repository
-```bash
+bash
 git clone https://github.com/yourusername/resume_analyzer.git
-cd resume_analyzer
+cd resume_analyzer 
 
 ## Install Dependencies
 Make sure you have Python 3.7+ installed, then run:
@@ -62,13 +62,14 @@ genai.configure(api_key="YOUR_GEMINI_API_KEY")
 📧 [Email](2022anchal.g@vidyashilp.edu.in)  
 📞 7807647835  
 🔗 [LinkedIn Profile](https://www.linkedin.com/in/anchal-gupta-71436b254/)  
----
+
 
 ## 🪪 License
 
 This project is licensed under the **MIT License**.  
 You’re free to use, modify, and distribute it for both personal and commercial purposes.  
 See the [LICENSE](LICENSE) file for more details.
+
 
 
 
