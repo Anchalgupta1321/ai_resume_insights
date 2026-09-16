@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-resume-insights
+    env: python
+    buildCommand: "cd frontend && npm install && npm run build && cd .. && pip install -r backend/requirements.txt"
+    startCommand: "uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DEFAULT_AI_PROVIDER
+        value: groq
+      - key: AI_MODEL
+        value: groq/compound-mini
+      - key: PYTHON_VERSION
+        value: 3.11.0
