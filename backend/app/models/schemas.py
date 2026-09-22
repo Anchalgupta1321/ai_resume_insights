@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel, Field
 
 class ProjectInfo(BaseModel):
@@ -8,9 +8,9 @@ class ProjectInfo(BaseModel):
     candidate_name: Optional[str] = None
 
 class SupportingInfo(BaseModel):
-    certifications: List[str] = []
-    internships: List[str] = []
-    projects: List[ProjectInfo] = []
+    certifications: List[Union[str, Dict[str, Any]]] = []
+    internships: List[Union[str, Dict[str, Any]]] = []
+    projects: List[Union[ProjectInfo, Dict[str, Any]]] = []
 
 class AdditionalInsights(BaseModel):
     career_potential: Optional[str] = "Good potential"

@@ -474,6 +474,38 @@ export default function CandidateDrawer({
                   </div>
                 </div>
               )}
+
+              {/* Internships Breakdown */}
+              {internships.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#064E3B', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Briefcase size={16} color="#059669" /> Internships & Practical Experience ({internships.length})
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {internships.map((intern, idx) => (
+                      <div key={idx} style={{ background: '#F0FDF4', border: '1px solid rgba(16, 185, 129, 0.25)', borderRadius: 'var(--radius-md)', padding: '12px 14px', fontSize: '0.85rem', color: '#062D24', fontWeight: 500 }}>
+                        {typeof intern === 'string' ? intern : JSON.stringify(intern)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Certifications Breakdown */}
+              {certifications.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#064E3B', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Award size={16} color="#059669" /> Certifications & Credentials ({certifications.length})
+                  </h4>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {certifications.map((cert, idx) => (
+                      <div key={idx} style={{ background: '#ECFDF5', border: '1px solid rgba(16, 185, 129, 0.35)', borderRadius: 'var(--radius-full)', padding: '6px 14px', fontSize: '0.8rem', color: '#065F46', fontWeight: 600 }}>
+                        🏆 {typeof cert === 'string' ? cert : JSON.stringify(cert)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
 

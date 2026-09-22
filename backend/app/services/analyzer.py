@@ -16,6 +16,35 @@ from backend.app.config import settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+def sanitize_string_list(items: Any) -> List[str]:
+    if not isinstance(items, list):
+        return []
+    result = []
+    for item in items:
+        if isinstance(item, str):
+            if item.strip():
+                result.append(item.strip())
+        elif isinstance(item, dict):
+            role_or_title = item.get("role") or item.get("title") or item.get("name") or item.get("position")
+            company_or_org = item.get("company") or item.get("organization") or item.get("issuer")
+            desc = item.get("description") or item.get("details")
+            parts = []
+            if role_or_title and isinstance(role_or_title, str):
+                parts.append(role_or_title.strip())
+            if company_or_org and isinstance(company_or_org, str):
+                parts.append(f"at {company_or_org.strip()}" if parts else company_or_org.strip())
+            if desc and isinstance(desc, str):
+                parts.append(f"({desc.strip()})")
+            if parts:
+                result.append(" ".join(parts))
+            else:
+                val_strs = [str(v) for v in item.values() if v]
+                if val_strs:
+                    result.append(" - ".join(val_strs))
+        elif item is not None:
+            result.append(str(item))
+    return result
+
 DEFAULT_CRITERIA = [
     "Domain & Role Expertise",
     "Practical Experience & Projects",
@@ -267,15 +296,37 @@ RESUME TEXT TO EVALUATE:
                     if str_field not in data or not data[str_field]:
                         data[str_field] = "screened" if str_field == "pipeline_stage" else ("Shortlist" if str_field == "recommendation" else "N/A")
 
-                if "matched_skills" not in data or not isinstance(data["matched_skills"], list):
-                    data["matched_skills"] = []
-                if "missing_skills" not in data or not isinstance(data["missing_skills"], list):
-                    data["missing_skills"] = []
-                if "key_skills" not in data or not isinstance(data["key_skills"], list):
-                    data["key_skills"] = []
+                data["matched_skills"] = sanitize_string_list(data.get("matched_skills", []))
+                data["missing_skills"] = sanitize_string_list(data.get("missing_skills", []))
+                data["key_skills"] = sanitize_string_list(data.get("key_skills", []))
+                data["technical_skills"] = sanitize_string_list(data.get("technical_skills") or data.get("key_skills", []))
 
                 if "supporting_info" not in data or not isinstance(data["supporting_info"], dict):
                     data["supporting_info"] = {"certifications": [], "internships": [], "projects": []}
+                else:
+                    supp = data["supporting_info"]
+                    supp["certifications"] = sanitize_string_list(supp.get("certifications", []))
+                    supp["internships"] = sanitize_string_list(supp.get("internships", []))
+
+                    raw_projects = supp.get("projects", [])
+                    cleaned_projects = []
+                    if isinstance(raw_projects, list):
+                        for proj in raw_projects:
+                            if isinstance(proj, dict):
+                                cleaned_projects.append({
+                                    "name": str(proj.get("name") or "Project"),
+                                    "description": str(proj.get("description") or ""),
+                                    "technologies": sanitize_string_list(proj.get("technologies", [])),
+                                    "candidate_name": proj.get("candidate_name")
+                                })
+                            elif isinstance(proj, str):
+                                cleaned_projects.append({
+                                    "name": proj,
+                                    "description": "",
+                                    "technologies": [],
+                                    "candidate_name": None
+                                })
+                    supp["projects"] = cleaned_projects
 
                 if "risk_assessment" not in data or not isinstance(data["risk_assessment"], dict):
                     data["risk_assessment"] = {
@@ -285,6 +336,8 @@ RESUME TEXT TO EVALUATE:
                         "risk_flags": [],
                         "authenticity_summary": "Verified candidate profile with practical deliverables."
                     }
+                else:
+                    data["risk_assessment"]["risk_flags"] = sanitize_string_list(data["risk_assessment"].get("risk_flags", []))
 
                 return data
 
@@ -448,7 +501,12 @@ STRICT JSON OUTPUT STRUCTURE:
         role = candidate.get("target_role", "Software Engineer")
         skills = ", ".join(candidate.get("key_skills", [])[:5])
         projects = candidate.get("supporting_info", {}).get("projects", [])
-        top_project = projects[0]["name"] if projects else "your recent technical accomplishments"
+        if projects and isinstance(projects[0], dict):
+            top_project = projects[0].get("name", "your recent technical accomplishments")
+        elif projects and isinstance(projects[0], str):
+            top_project = projects[0]
+        else:
+            top_project = "your recent technical accomplishments"
 
         type_instructions = {
             "interview_invite": f"Draft an enthusiastic, professional Technical Interview Invitation. Mention their standout project '{top_project}' and explain the next steps for a 45-min interview.",
@@ -534,6 +592,12 @@ STRICT JSON OUTPUT STRUCTURE:
             raise ValueError("Failed to calculate multi-role matches.")
         data = json.loads(json_str)
         data["success"] = True
+        data.setdefault("candidate_name", cand_name)
+        data.setdefault("matches", [])
+        for m in data.get("matches", []):
+            if isinstance(m, dict):
+                m["matched_skills"] = sanitize_string_list(m.get("matched_skills", []))
+                m["gap_skills"] = sanitize_string_list(m.get("gap_skills", []))
         return data
 
     # ==========================================

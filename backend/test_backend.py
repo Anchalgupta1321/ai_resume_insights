@@ -52,7 +52,41 @@ def test_excel_generation():
     assert os.path.exists(res_path), "Excel file was not created!"
     print(f"[SUCCESS] Excel generation test passed: {res_path} generated successfully.")
 
+def test_dict_internships_sanitization():
+    from backend.app.services.analyzer import sanitize_string_list
+    from backend.app.models.schemas import AnalysisBatchResponse, CandidateAnalysis
+
+    raw_internships = [
+        {"role": "Junior Software Engineer", "company": "Communication Services", "description": "Developed microservices"},
+        "Direct String Internship"
+    ]
+    cleaned = sanitize_string_list(raw_internships)
+    assert len(cleaned) == 2
+    assert "Junior Software Engineer at Communication Services" in cleaned[0]
+    assert cleaned[1] == "Direct String Internship"
+
+    # Test Pydantic model validation with dict in internships
+    cand_data = {
+        "name": "John Doe",
+        "supporting_info": {
+            "internships": raw_internships,
+            "certifications": [{"title": "AWS Architect"}],
+            "projects": []
+        }
+    }
+    analysis = CandidateAnalysis(**cand_data)
+    batch_resp = AnalysisBatchResponse(
+        success=True,
+        total_processed=1,
+        successful_count=1,
+        failed_count=0,
+        results=[analysis]
+    )
+    assert len(batch_resp.results) == 1
+    print("[SUCCESS] Dict internships sanitization & Pydantic validation test passed.")
+
 if __name__ == "__main__":
     test_json_cleaning()
     test_excel_generation()
+    test_dict_internships_sanitization()
     print("[SUCCESS] All backend unit tests passed successfully!")
