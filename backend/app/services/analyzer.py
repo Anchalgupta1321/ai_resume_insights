@@ -122,7 +122,7 @@ class ResumeAnalyzerService:
                 raise ValueError("Groq API Key is not configured. Please provide a key or set GROQ_API_KEY in .env.")
             self.groq_client = Groq(api_key=self.api_key)
 
-        models_to_try = [self.model_name, "groq/compound-mini", "groq/compound", "openai/gpt-oss-120b"]
+        models_to_try = [self.model_name, "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "mixtral-8x7b-32768"]
         for m in models_to_try:
             try:
                 chat_completion = self.groq_client.chat.completions.create(

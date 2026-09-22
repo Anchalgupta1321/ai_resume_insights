@@ -21,7 +21,7 @@ class Settings:
     def DEFAULT_AI_PROVIDER(self) -> str:
         return os.getenv("DEFAULT_AI_PROVIDER", "groq")
 
-    DEFAULT_GROQ_MODEL: str = os.getenv("DEFAULT_GROQ_MODEL", "groq/compound-mini")
+    DEFAULT_GROQ_MODEL: str = os.getenv("DEFAULT_GROQ_MODEL", "llama-3.3-70b-versatile")
     DEFAULT_GEMINI_MODEL: str = os.getenv("DEFAULT_GEMINI_MODEL", "gemini-1.5-flash")
     
     # Uploads & temporary file storage

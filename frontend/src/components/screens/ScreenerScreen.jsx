@@ -45,22 +45,31 @@ const ROLE_PRESETS = {
 };
 
 export default function ScreenerScreen({ 
+  onAnalyzeUpload,
   onAnalysisSuccess, 
+  onOpenDriveModal,
+  isAnalyzing: parentAnalyzing,
+  error: parentError,
   apiKey, 
   modelName, 
   targetRole: parentRole, 
-  setTargetRole: setParentRole 
+  setTargetRole: setParentRole,
+  lastAnalyzedRole,
+  setLastAnalyzedRole
 }) {
   const [selectedPreset, setSelectedPreset] = useState('ai_specialist');
-  const [targetRole, setTargetRole] = useState(parentRole || ROLE_PRESETS.ai_specialist.target_role);
+  const [targetRole, setTargetRole] = useState(parentRole || lastAnalyzedRole || ROLE_PRESETS.ai_specialist.target_role);
   const [jobDescription, setJobDescription] = useState(ROLE_PRESETS.ai_specialist.job_description);
   const [criteriaList, setCriteriaList] = useState(ROLE_PRESETS.ai_specialist.criteria);
   const [newCriterion, setNewCriterion] = useState('');
   
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [error, setError] = useState(null);
+  const [localIsAnalyzing, setLocalIsAnalyzing] = useState(false);
+  const [localError, setLocalError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+
+  const activeIsAnalyzing = parentAnalyzing || localIsAnalyzing;
+  const activeError = parentError || localError;
 
   const inputRef = useRef(null);
 
@@ -127,18 +136,36 @@ export default function ScreenerScreen({
 
   const clearAll = () => {
     setSelectedFiles([]);
-    setError(null);
+    setLocalError(null);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (selectedFiles.length === 0) {
-      setError('Please select at least one PDF resume to evaluate.');
+      setLocalError('Please select at least one PDF resume to evaluate.');
       return;
     }
 
-    setIsAnalyzing(true);
-    setError(null);
+    if (setLastAnalyzedRole) setLastAnalyzedRole(targetRole);
+    if (setParentRole) setParentRole(targetRole);
+
+    if (typeof onAnalyzeUpload === 'function') {
+      try {
+        setLocalError(null);
+        await onAnalyzeUpload({
+          files: selectedFiles,
+          targetRole,
+          jobDescription,
+          scoringCriteria: criteriaList
+        });
+      } catch (err) {
+        setLocalError(`Analysis Error: ${err.message || err}`);
+      }
+      return;
+    }
+
+    setLocalIsAnalyzing(true);
+    setLocalError(null);
 
     const formData = new FormData();
     selectedFiles.forEach(file => {
@@ -170,14 +197,16 @@ export default function ScreenerScreen({
 
       const data = await res.json();
       if (data.results && data.results.length > 0) {
-        onAnalysisSuccess(data.results, targetRole);
+        if (typeof onAnalysisSuccess === 'function') {
+          onAnalysisSuccess(data.results, targetRole);
+        }
       } else {
-        setError('No candidate evaluations returned. Please check the PDF contents and API key.');
+        setLocalError('No candidate evaluations returned. Please check the PDF contents and API key.');
       }
     } catch (err) {
-      setError(`Analysis Error: ${err.message}`);
+      setLocalError(`Analysis Error: ${err.message || err}`);
     } finally {
-      setIsAnalyzing(false);
+      setLocalIsAnalyzing(false);
     }
   };
 
@@ -337,7 +366,7 @@ export default function ScreenerScreen({
               {selectedFiles.length > 0 && (
                 <button 
                   onClick={clearAll}
-                  disabled={isAnalyzing}
+                  disabled={activeIsAnalyzing}
                   style={{ background: 'none', border: 'none', color: '#059669', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}
                 >
                   Clear all
@@ -351,14 +380,14 @@ export default function ScreenerScreen({
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
-              onClick={() => !isAnalyzing && inputRef.current?.click()}
+              onClick={() => !activeIsAnalyzing && inputRef.current?.click()}
               style={{
                 border: `2px dashed ${dragActive ? '#059669' : 'rgba(16, 185, 129, 0.35)'}`,
                 borderRadius: 'var(--radius-md)',
                 padding: '36px 20px',
                 textAlign: 'center',
                 background: dragActive ? '#ECFDF5' : '#F0FDF4',
-                cursor: isAnalyzing ? 'not-allowed' : 'pointer',
+                cursor: activeIsAnalyzing ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 display: 'flex',
                 flexDirection: 'column',
@@ -374,7 +403,7 @@ export default function ScreenerScreen({
                 accept=".pdf" 
                 style={{ display: 'none' }} 
                 onChange={handleFileInput}
-                disabled={isAnalyzing}
+                disabled={activeIsAnalyzing}
               />
               
               <div style={{
@@ -447,7 +476,7 @@ export default function ScreenerScreen({
                         <span style={{ color: '#047857', fontSize: '0.75rem', fontWeight: 500 }}>
                           {(file.size / 1024).toFixed(0)} KB
                         </span>
-                        {!isAnalyzing && (
+                        {!activeIsAnalyzing && (
                           <button
                             onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
                             style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', display: 'flex' }}
@@ -465,7 +494,7 @@ export default function ScreenerScreen({
 
           {/* Submit Action */}
           <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {error && (
+            {activeError && (
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -479,17 +508,17 @@ export default function ScreenerScreen({
                 fontWeight: 500
               }}>
                 <AlertCircle size={16} />
-                <span>{error}</span>
+                <span>{activeError}</span>
               </div>
             )}
 
             <button
               className="btn btn-primary"
               onClick={handleSubmit}
-              disabled={isAnalyzing || selectedFiles.length === 0}
+              disabled={activeIsAnalyzing || selectedFiles.length === 0}
               style={{ width: '100%', padding: '14px', fontSize: '0.95rem' }}
             >
-              {isAnalyzing ? (
+              {activeIsAnalyzing ? (
                 <>
                   <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
                   Evaluating {selectedFiles.length} Resumes with Groq AI...
