@@ -10,6 +10,6 @@ services:
       - key: DEFAULT_AI_PROVIDER
         value: groq
       - key: AI_MODEL
-        value: groq/compound-mini
+        value: llama-3.3-70b-versatile
       - key: PYTHON_VERSION
         value: 3.11.0

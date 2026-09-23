@@ -4,7 +4,7 @@ import { X, Key, CheckCircle2, AlertCircle, Loader2, Sparkles, Zap } from 'lucid
 export default function SettingsModal({ isOpen, onClose, apiKey, setApiKey, modelName, setModelName }) {
   const [provider, setProvider] = useState(() => localStorage.getItem('AI_PROVIDER') || 'groq');
   const [tempKey, setTempKey] = useState(apiKey || '');
-  const [tempModel, setTempModel] = useState(modelName || 'groq/compound-mini');
+  const [tempModel, setTempModel] = useState(modelName || 'llama-3.3-70b-versatile');
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
 
@@ -88,7 +88,7 @@ export default function SettingsModal({ isOpen, onClose, apiKey, setApiKey, mode
                 type="button"
                 onClick={() => {
                   setProvider('groq');
-                  setTempModel('groq/compound-mini');
+                  setTempModel('llama-3.3-70b-versatile');
                 }}
                 style={{
                   padding: '10px',

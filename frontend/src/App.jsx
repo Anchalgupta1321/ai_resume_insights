@@ -45,7 +45,7 @@ export default function App() {
 
   // Settings State
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('AI_API_KEY') || '');
-  const [modelName, setModelName] = useState(() => localStorage.getItem('AI_MODEL') || 'groq/compound-mini');
+  const [modelName, setModelName] = useState(() => localStorage.getItem('AI_MODEL') || 'llama-3.3-70b-versatile');
 
   // Auto-persist candidates to localStorage
   useEffect(() => {
