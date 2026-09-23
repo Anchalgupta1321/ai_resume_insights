@@ -122,7 +122,43 @@ class ResumeAnalyzerService:
                 raise ValueError("Groq API Key is not configured. Please provide a key or set GROQ_API_KEY in .env.")
             self.groq_client = Groq(api_key=self.api_key)
 
-        models_to_try = [self.model_name, "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "mixtral-8x7b-32768"]
+        models_to_try = []
+        if self.model_name:
+            models_to_try.append(self.model_name)
+
+        try:
+            live_models = self.groq_client.models.list()
+            active_ids = [m.id for m in live_models.data if hasattr(m, 'id') and m.id]
+            logging.info(f"Retrieved {len(active_ids)} active Groq models from API.")
+
+            priority_models = [
+                "llama-3.3-70b-versatile",
+                "llama-3.1-8b-instant",
+                "llama-3.2-11b-vision-preview",
+                "llama-3.2-3b-preview",
+                "llama-3.2-1b-preview",
+                "qwen-2.5-coder-32b",
+                "deepseek-r1-distill-llama-70b",
+                "gemma2-9b-it"
+            ]
+            for p in priority_models:
+                if p in active_ids and p not in models_to_try:
+                    models_to_try.append(p)
+
+            for m_id in active_ids:
+                if m_id not in models_to_try and not m_id.startswith("whisper") and not m_id.startswith("distil-whisper"):
+                    models_to_try.append(m_id)
+        except Exception as list_err:
+            logging.warning(f"Could not dynamically list Groq models: {str(list_err)}")
+            fallback_defaults = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+            for f_m in fallback_defaults:
+                if f_m not in models_to_try:
+                    models_to_try.append(f_m)
+
+        if not models_to_try:
+            models_to_try = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+
+        last_err = None
         for m in models_to_try:
             try:
                 chat_completion = self.groq_client.chat.completions.create(
@@ -135,9 +171,10 @@ class ResumeAnalyzerService:
                 )
                 return chat_completion.choices[0].message.content
             except Exception as e:
-                logging.warning(f"Groq model {m} attempt failed: {str(e)}, trying next model...")
+                last_err = e
+                logging.warning(f"Groq model '{m}' attempt failed: {str(e)}, trying next model...")
                 continue
-        raise RuntimeError("All Groq model attempts failed.")
+        raise RuntimeError(f"All Groq model attempts failed. Last error: {str(last_err)}")
 
     def _call_gemini_llm(self, prompt: str) -> str:
         if not self.gemini_model:
