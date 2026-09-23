@@ -91,13 +91,21 @@ export default function OutreachModal({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleLaunchEmailClient = () => {
-    const contact = candidate?.contact_details || '';
-    const emailMatch = contact.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+  const handleLaunchEmailClient = (target = 'default') => {
+    const contact = candidate?.contact_details || candidate?.email || '';
+    const emailMatch = contact.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
     const toAddress = emailMatch ? emailMatch[1] : '';
 
-    const mailtoUrl = `mailto:${toAddress}?subject=${encodeURIComponent(generatedSubject)}&body=${encodeURIComponent(generatedBody)}`;
-    window.open(mailtoUrl, '_blank');
+    const subjectEncoded = encodeURIComponent(generatedSubject || '');
+    const bodyEncoded = encodeURIComponent(generatedBody || '');
+
+    if (target === 'gmail') {
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(toAddress)}&su=${subjectEncoded}&body=${bodyEncoded}`;
+      window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      const mailtoUrl = `mailto:${toAddress}?subject=${subjectEncoded}&body=${bodyEncoded}`;
+      window.location.href = mailtoUrl;
+    }
   };
 
   if (!isOpen || !candidate) return null;
@@ -260,11 +268,22 @@ export default function OutreachModal({
 
             <button
               className="btn btn-secondary"
-              onClick={handleLaunchEmailClient}
+              onClick={() => handleLaunchEmailClient('default')}
               disabled={!generatedBody || isComposing}
               style={{ fontSize: '0.85rem', fontWeight: 700 }}
+              title="Launch your OS default email client (Outlook, Mail, etc.)"
             >
               <ExternalLink size={16} /> Open in Email App
+            </button>
+
+            <button
+              className="btn btn-secondary"
+              onClick={() => handleLaunchEmailClient('gmail')}
+              disabled={!generatedBody || isComposing}
+              style={{ fontSize: '0.85rem', fontWeight: 700, color: '#EA4335' }}
+              title="Open draft in Gmail Web composer"
+            >
+              <Mail size={16} color="#EA4335" /> Open in Gmail Web
             </button>
           </div>
 
