@@ -3,6 +3,7 @@ import re
 import json
 import logging
 import warnings
+from datetime import datetime
 from time import sleep
 from typing import Dict, List, Any, Optional
 from concurrent.futures import ThreadPoolExecutor
@@ -214,6 +215,9 @@ class ResumeAnalyzerService:
         criteria_list_str = "\n".join([f"   - {c} (Rate 1 to 5, where 1=Poor/No Evidence, 3=Competent, 5=Outstanding/Mastery)" for c in criteria])
         criteria_json_template = ", ".join([f'"{c}": 3' for c in criteria])
 
+        current_date_str = datetime.now().strftime("%B %Y")
+        current_year = datetime.now().year
+
         jd_section = f"""
 TARGET JOB DESCRIPTION / REQUIREMENTS:
 ----------------------------------------
@@ -225,6 +229,10 @@ TARGET JOB DESCRIPTION / REQUIREMENTS:
 You are an expert Executive Hiring Manager and AI Talent Intelligence System.
 Analyze the provided resume against the Target Role / Job Description.
 Also assess resume authenticity, quantifiable metrics impact, and risk flags (e.g., timeline gaps, buzzword density without proof).
+
+TIMELINE & CURRENT DATE CONTEXT:
+- Today's Date is: {current_date_str} (Year {current_year}).
+- Any work experience, internship, degree, or project dated up to {current_date_str} (including year {current_year} or earlier) is VALID present/past experience and MUST NOT be flagged as a future date.
 
 {jd_section}
 
@@ -238,7 +246,7 @@ EVALUATION RULES:
    - authenticity_score (0-100%): Level of credibility based on detailed projects and verifiable details.
    - metric_impact_score (0-100%): Proportion of achievements backed up by quantitative numbers/metrics (% improvements, user scale, revenue, speedup).
    - buzzword_density_score (0-100%): Ratio of unsubstantiated keywords vs substantiated projects.
-   - risk_flags: List of any detected timeline anomalies, vague project descriptions, or missing critical qualifications.
+   - risk_flags: List of any detected timeline anomalies, vague project descriptions, or missing critical qualifications. (Do NOT flag dates in or before year {current_year} as future dates).
 
 REQUIRED STRICT JSON OUTPUT STRUCTURE:
 {{
