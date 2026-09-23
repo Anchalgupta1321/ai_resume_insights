@@ -123,9 +123,9 @@ export default function ScreenerScreen({
   const handleFiles = (files) => {
     const pdfs = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
     if (pdfs.length < files.length) {
-      setError('Only PDF resumes are supported. Non-PDF files were omitted.');
+      setLocalError('Only PDF resumes are supported. Non-PDF files were omitted.');
     } else {
-      setError(null);
+      setLocalError(null);
     }
     setSelectedFiles(prev => [...prev, ...pdfs]);
   };
